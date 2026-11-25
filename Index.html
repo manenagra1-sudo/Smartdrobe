@@ -1,0 +1,67 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Smartdrobe</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#e9eef3;--ph:#fff;--sf:#f2f5f8;--tx:#13202e;--mu:#5d6b7a;--ac:#2a9d8f;--nv:#1f3a5f;--am:#e9a23b;--bd:#dde4ea;box-sizing:border-box}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b1117;--ph:#121b25;--sf:#1b2733;--tx:#eef3f8;--mu:#9aa9b8;--nv:#9cc3f0;--bd:#2a3846}}
+:root[data-theme=dark]{--bg:#0b1117;--ph:#121b25;--sf:#1b2733;--tx:#eef3f8;--mu:#9aa9b8;--nv:#9cc3f0;--bd:#2a3846}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--tx);display:flex;align-items:center;justify-content:center}
+.phone{width:100%;height:100%;background:var(--ph);display:flex;flex-direction:column;position:relative;overflow:hidden;padding-top:env(safe-area-inset-top,0px)}
+@media(min-width:600px){.phone{width:390px;height:800px;border-radius:44px;border:10px solid #101820;box-shadow:0 20px 60px rgba(0,0,0,.3)}}
+main{flex:1;overflow-y:auto;padding:18px 18px 12px}
+h1{font-size:24px;margin:0}h2{font-size:17px;margin:20px 0 10px}.mu{color:var(--mu);font-size:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--bd);background:var(--sf);color:var(--tx);border-radius:20px;padding:8px 14px;font-size:14px;cursor:pointer}
+.chip.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.card{background:var(--sf);border-radius:18px;padding:16px;margin-top:12px}
+.outfit{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.it{background:var(--ph);border:1px solid var(--bd);border-radius:14px;padding:12px;font-size:14px}
+.it b{display:block;font-size:26px;margin-bottom:4px}.tag{font-size:11px;color:var(--ac);font-family:ui-monospace,monospace}
+.btn{width:100%;border:0;border-radius:14px;padding:14px;font-size:16px;font-weight:600;background:var(--ac);color:#fff;margin-top:14px;cursor:pointer}
+.btn.sec{background:var(--nv);color:var(--ph)}
+nav{display:flex;border-top:1px solid var(--bd);padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}
+nav button{flex:1;background:none;border:0;color:var(--mu);font-size:12px;padding:6px;cursor:pointer}nav button.on{color:var(--ac);font-weight:700}nav span{display:block;font-size:22px}
+input,select{width:100%;padding:11px;border-radius:12px;border:1px solid var(--bd);background:var(--ph);color:var(--tx);font-size:15px;margin-top:8px}
+.li{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--bd)}.li .e{font-size:26px}.li div{flex:1;font-size:15px}
+.x{background:none;border:0;color:#d1495b;font-size:20px;cursor:pointer}
+.bar{height:10px;border-radius:6px;background:var(--bd);overflow:hidden;margin:14px 0}.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .4s}
+.rail{position:relative;height:34px;border-radius:8px;background:var(--sf)}.rail i{position:absolute;top:6px;left:4%;width:30px;height:22px;border-radius:6px;background:var(--am);transition:left .5s}
+.hid{display:none}.live{position:absolute;left:0;right:0;bottom:0;background:var(--ph);border-top:1px solid var(--bd);border-radius:22px 22px 0 0;padding:20px;box-shadow:0 -10px 30px rgba(0,0,0,.2)}
+</style></head><body><div class="phone">
+<main id="m"></main>
+<div id="sheet" class="live hid"><h2 style="margin-top:0">Retrieving your outfit</h2><div class="rail"><i id="car"></i></div><div class="bar"><i id="pb"></i></div><p class="mu" id="st"></p><button class="btn sec" id="cl">Close</button></div>
+<nav><button data-t="today" class="on"><span>✨</span>Today</button><button data-t="ward"><span>🧥</span>Wardrobe</button><button data-t="cl"><span>🔖</span>Closet</button></nav></div>
+<script>
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let id=0;const rf=()=>'RF-'+(1000+(id++)*7+Math.floor(Math.random()*6));
+const E={Top:'👕',Bottom:'👖',Outer:'🧥',Shoes:'👟'};
+let items=[['White tee','Top','casual',0,0],['Navy shirt','Top','formal',0,0],['Gym top','Top','sport',0,0],['Wool sweater','Top','casual',1,0],['Jeans','Bottom','casual',1,0],['Dress pants','Bottom','formal',0,0],['Shorts','Bottom','sport',0,0],['Rain jacket','Outer','casual',0,1],['Wool coat','Outer','formal',1,1],['Sneakers','Shoes','casual',0,0],['Loafers','Shoes','formal',0,0],['Runners','Shoes','sport',0,1]].map(a=>({name:a[0],cat:a[1],style:a[2],warm:a[3],rain:a[4],rfid:rf(),out:false}));
+const S={tab:'today',ev:'casual',wx:'Sunny',q:'',pick:null};
+const EV={casual:'Class',formal:'Interview',sport:'Gym'};const WX={Sunny:'☀️ 22°C',Rainy:'🌧️ 9°C',Cold:'❄️ -6°C'};
+function suggest(){const cold=S.wx==='Cold',rain=S.wx==='Rainy',o={};
+['Top','Bottom','Outer','Shoes'].forEach(c=>{if(c==='Outer'&&!cold&&!rain)return;
+const sc=i=>(i.style===S.ev?3:0)+(cold&&i.warm?2:0)+(rain&&i.rain?2:0)+(S.wx==='Sunny'&&!i.warm?1:0);
+const l=items.filter(i=>i.cat===c&&!i.out).sort((a,b)=>sc(b)-sc(a));if(l[0])o[c]=l[0]});return o}
+function chips(k,o,cur,lab){return `<div class="row">${Object.keys(o).map(v=>`<button class="chip ${cur===v?'on':''}" data-k="${k}" data-v="${v}">${lab?lab(v):o[v]}</button>`).join('')}</div>`}
+function r(){const m=document.getElementById('m');
+document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===S.tab));
+if(S.tab==='today'){S.pick=suggest();const p=S.pick,ks=Object.keys(p);
+m.innerHTML=`<h1>Good morning</h1><p class="mu">Today's weather: ${WX[S.wx]}</p><h2>Weather</h2>${chips('wx',WX,S.wx,v=>WX[v])}<h2>Event</h2>${chips('ev',EV,S.ev,v=>EV[v])}<h2>AI outfit pick</h2><div class="card"><div class="outfit">${ks.map(c=>`<div class="it"><b>${E[c]}</b>${esc(p[c].name)}<div class="tag">${p[c].rfid}</div></div>`).join('')||'<p class="mu">Nothing available. Return items to the closet.</p>'}</div><button class="btn" id="go" ${ks.length?'':'disabled'}>Retrieve this outfit</button></div>`}
+else if(S.tab==='ward'){const l=items.filter(i=>(i.name+i.cat+i.style).toLowerCase().includes(S.q.toLowerCase()));
+m.innerHTML=`<h1>Wardrobe</h1><p class="mu">${items.length} items tracked by RFID</p><input id="q" placeholder="Search items" value="${esc(S.q)}">${l.map(i=>`<div class="li"><span class="e">${E[i.cat]}</span><div>${esc(i.name)}<div class="mu">${i.cat} · ${i.style} · <span class="tag">${i.rfid}</span></div></div><button class="x" data-del="${i.rfid}" aria-label="Delete">✕</button></div>`).join('')||'<p class="mu">No items match.</p>'}<div class="card"><b>Add item</b><input id="nn" placeholder="Item name"><select id="nc"><option>Top</option><option>Bottom</option><option>Outer</option><option>Shoes</option></select><select id="ns"><option value="casual">Casual</option><option value="formal">Formal</option><option value="sport">Sport</option></select><button class="btn" id="add">Scan tag and add</button></div>`;
+const q=document.getElementById('q');if(S.focus){q.focus();q.setSelectionRange(q.value.length,q.value.length)}}
+else{const o=items.filter(i=>i.out);m.innerHTML=`<h1>Closet status</h1><p class="mu">${o.length} item(s) out of the wardrobe</p>${o.map(i=>`<div class="li"><span class="e">${E[i.cat]}</span><div>${esc(i.name)}<div class="tag">${i.rfid}</div></div><button class="chip" data-ret="${i.rfid}">Return</button></div>`).join('')||'<p class="mu">Everything is in the wardrobe.</p>'}`}}
+document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;S.focus=false;
+if(t.dataset.t){S.tab=t.dataset.t;r()}else if(t.dataset.k){S[t.dataset.k]=t.dataset.v;r()}
+else if(t.dataset.del){items=items.filter(i=>i.rfid!==t.dataset.del);r()}
+else if(t.dataset.ret){items.find(i=>i.rfid===t.dataset.ret).out=false;r()}
+else if(t.id==='add'){const n=document.getElementById('nn').value.trim();if(!n)return;items.push({name:n,cat:document.getElementById('nc').value,style:document.getElementById('ns').value,warm:0,rain:0,rfid:rf(),out:false});S.q='';r()}
+else if(t.id==='go'){go()}else if(t.id==='cl'){document.getElementById('sheet').classList.add('hid');S.tab='cl';r()}});
+document.addEventListener('input',e=>{if(e.target.id==='q'){S.q=e.target.value;S.focus=true;r()}});
+function go(){const sh=document.getElementById('sheet'),pb=document.getElementById('pb'),car=document.getElementById('car'),st=document.getElementById('st'),cl=document.getElementById('cl');
+sh.classList.remove('hid');cl.disabled=true;const chosen=Object.values(S.pick);
+const steps=[['Reading RFID tags',10],['Locating garments on the rail',40],['Moving the rail carriage',70],['Delivering to the pickup bay',100]];let k=0;
+(function n(){if(k>=steps.length){chosen.forEach(i=>i.out=true);st.textContent='Done. Your outfit is ready at the pickup bay.';cl.disabled=false;return}
+st.textContent=steps[k][0]+'...';pb.style.width=steps[k][1]+'%';car.style.left=(4+steps[k][1]*.8)+'%';k++;setTimeout(n,900)})()}
+r();
+</script></body></html>
